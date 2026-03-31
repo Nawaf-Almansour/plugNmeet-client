@@ -17,6 +17,7 @@ i18n
   .use(HttpApi)
   .init({
     debug: !IS_PRODUCTION,
+    lng: 'ar-SA',
     fallbackLng: 'en',
     interpolation: {
       escapeValue: false, // not needed for react as it escapes by default

@@ -34,7 +34,7 @@ export const useNotepadUrl = () => {
     }
 
     let baseUrl = sharedNotepadFeatures.host;
-    if (baseUrl.match('host.docker.internal')) {
+    if (baseUrl.match('host.docker.internal') || baseUrl.match('://etherpad:')) {
       baseUrl = 'http://localhost:9001';
     }
 
@@ -49,7 +49,7 @@ export const useNotepadUrl = () => {
       currentUser?.name
     }&userColor=%23${getUserColor()}&lang=${
       i18n.languages[0]
-    }&theme=${themeParam}`;
+    }&theme=${themeParam}&showChat=false&alwaysShowChat=false`;
 
     setUrl(fullUrl);
   }, [
