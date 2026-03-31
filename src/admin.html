@@ -1,0 +1,566 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Room Management - plugNmeet</title>
+    <script src="./assets/config.js"></script>
+    <link rel="icon" type="image/x-icon" href="./assets/imgs/favicon.ico"/>
+    <link rel="preconnect" href="https://fonts.googleapis.com"/>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap" rel="stylesheet"/>
+    <style>
+        * { padding: 0; margin: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { min-height: 100vh; background-color: #f0f6fc; color: #233240; }
+        .topbar { background: #fff; border-bottom: 1px solid #c2daf2; padding: 12px 24px; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 50; }
+        .topbar .logo { display: flex; align-items: center; gap: 12px; }
+        .topbar .logo img { height: 36px; }
+        .topbar .logo span { font-size: 18px; font-weight: 600; color: #004D90; }
+        .topbar .auth-info { font-size: 13px; color: #667; display: flex; align-items: center; gap: 12px; }
+        .topbar .auth-info .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; display: inline-block; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 24px; }
+        .tabs { display: flex; gap: 8px; margin-bottom: 24px; }
+        .tab { padding: 10px 20px; border-radius: 12px; border: 1px solid #c2daf2; background: #fff; font-size: 14px; font-weight: 500; cursor: pointer; transition: all 0.2s; }
+        .tab:hover { background: #e8f4fd; }
+        .tab.active { background: #00a1f2; color: #fff; border-color: #08c; }
+        .card { background: #fff; border-radius: 16px; border: 1px solid #c2daf2; overflow: hidden; margin-bottom: 20px; }
+        .card-header { padding: 16px 20px; border-bottom: 1px solid #e8f0f8; display: flex; justify-content: space-between; align-items: center; }
+        .card-header h2 { font-size: 16px; font-weight: 600; }
+        .card-body { padding: 20px; }
+        .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-group.full { grid-column: 1 / -1; }
+        label { font-size: 13px; font-weight: 500; color: #556; }
+        input, select, textarea { border-radius: 12px; border: 1px solid #c2daf2; background: #fff; box-shadow: 0 1px 2px rgba(0,43,64,0.05); padding: 10px 14px; width: 100%; outline: none; font-size: 14px; transition: all 0.2s; }
+        input:focus, select:focus, textarea:focus { box-shadow: 0 0 0 3px rgba(124,206,247,0.25); border-color: #00a1f2; }
+        textarea { resize: vertical; min-height: 60px; }
+        .checkbox-group { display: flex; flex-wrap: wrap; gap: 12px; padding: 8px 0; }
+        .checkbox-item { display: flex; align-items: center; gap: 6px; font-size: 13px; }
+        .checkbox-item input[type="checkbox"] { width: 16px; height: 16px; border-radius: 4px; }
+        .btn { height: 40px; border-radius: 12px; padding: 0 20px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; border: none; display: inline-flex; align-items: center; justify-content: center; gap: 6px; }
+        .btn-primary { background: #00a1f2; color: #fff; }
+        .btn-primary:hover { background: #08c; }
+        .btn-danger { background: #fa3232; color: #fff; }
+        .btn-danger:hover { background: #cc0000; }
+        .btn-success { background: #22c55e; color: #fff; }
+        .btn-success:hover { background: #16a34a; }
+        .btn-outline { background: #fff; color: #233240; border: 1px solid #c2daf2; }
+        .btn-outline:hover { background: #f0f6fc; }
+        .btn-sm { height: 32px; padding: 0 12px; font-size: 12px; border-radius: 8px; }
+        .btn-group { display: flex; gap: 8px; margin-top: 16px; }
+        .table-wrap { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 13px; }
+        th { text-align: left; padding: 10px 14px; background: #f8fbfe; font-weight: 600; color: #556; border-bottom: 1px solid #e8f0f8; white-space: nowrap; }
+        td { padding: 10px 14px; border-bottom: 1px solid #f0f4f8; vertical-align: middle; }
+        tr:hover td { background: #f8fbfe; }
+        .badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 10px; border-radius: 20px; font-size: 11px; font-weight: 600; }
+        .badge-active { background: #dcfce7; color: #166534; }
+        .badge-recording { background: #fee2e2; color: #991b1b; }
+        .badge-inactive { background: #f1f5f9; color: #64748b; }
+        .empty-state { text-align: center; padding: 48px 20px; color: #94a3b8; }
+        .empty-state svg { width: 48px; height: 48px; margin-bottom: 12px; opacity: 0.5; }
+        .empty-state h3 { font-size: 16px; margin-bottom: 4px; color: #64748b; }
+        .empty-state p { font-size: 13px; }
+        .toast { position: fixed; bottom: 24px; right: 24px; padding: 12px 20px; border-radius: 12px; color: #fff; font-size: 13px; font-weight: 500; z-index: 100; transform: translateY(100px); opacity: 0; transition: all 0.3s; }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast-success { background: #22c55e; }
+        .toast-error { background: #ef4444; }
+        .join-link { display: flex; align-items: center; gap: 8px; }
+        .join-link input { font-size: 12px; padding: 6px 10px; height: 32px; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 60; display: none; align-items: center; justify-content: center; }
+        .modal-overlay.show { display: flex; }
+        .modal { background: #fff; border-radius: 16px; width: 100%; max-width: 480px; overflow: hidden; }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid #e8f0f8; font-size: 15px; font-weight: 600; display: flex; justify-content: space-between; align-items: center; }
+        .modal-header .close { background: none; border: none; font-size: 20px; cursor: pointer; color: #94a3b8; }
+        .modal-body { padding: 20px; }
+        .modal-footer { padding: 12px 20px; border-top: 1px solid #e8f0f8; display: flex; justify-content: flex-end; gap: 8px; }
+        .stat-cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 24px; }
+        .stat-card { background: #fff; border: 1px solid #c2daf2; border-radius: 14px; padding: 18px 20px; }
+        .stat-card .value { font-size: 28px; font-weight: 700; color: #004D90; }
+        .stat-card .label { font-size: 12px; color: #667; margin-top: 4px; }
+        .section-hidden { display: none; }
+        @media (max-width: 768px) {
+            .form-grid { grid-template-columns: 1fr; }
+            .stat-cards { grid-template-columns: 1fr 1fr; }
+            .tabs { flex-wrap: wrap; }
+        }
+        
+    </style>
+</head>
+<body>
+
+<div class="topbar">
+    <div class="logo">
+        <img src="./assets/imgs/main-logo-light.png" alt="logo"/>
+        <span>Room Management</span>
+    </div>
+    <div class="auth-info">
+        <span class="dot"></span>
+        <span>Connected</span>
+    </div>
+</div>
+
+<div class="container">
+    <div class="stat-cards" id="statsCards">
+        <div class="stat-card">
+            <div class="value" id="statActiveRooms">-</div>
+            <div class="label">Active Rooms</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="statTotalParticipants">-</div>
+            <div class="label">Total Participants</div>
+        </div>
+        <div class="stat-card">
+            <div class="value" id="statRecording">-</div>
+            <div class="label">Recording</div>
+        </div>
+    </div>
+
+    <div class="tabs">
+        <button class="tab active" onclick="switchTab('rooms')">Active Rooms</button>
+        <button class="tab" onclick="switchTab('create')">Create Room</button>
+        <button class="tab" onclick="switchTab('join')">Quick Join</button>
+    </div>
+
+    <!-- Active Rooms Tab -->
+    <div id="tab-rooms" class="tab-content">
+        <div class="card">
+            <div class="card-header">
+                <h2>Active Rooms</h2>
+                <button class="btn btn-outline btn-sm" onclick="refreshRooms()">Refresh</button>
+            </div>
+            <div class="card-body">
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Room Title</th>
+                                <th>Room ID</th>
+                                <th>Participants</th>
+                                <th>Status</th>
+                                <th>Created</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody id="roomsTableBody">
+                            <tr><td colspan="6"><div class="empty-state"><h3>Loading...</h3></div></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Create Room Tab -->
+    <div id="tab-create" class="tab-content section-hidden">
+        <div class="card">
+            <div class="card-header">
+                <h2>Create New Room</h2>
+            </div>
+            <div class="card-body">
+                <form id="createRoomForm" onsubmit="handleCreateRoom(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="cr_room_id">Room ID</label>
+                            <input type="text" id="cr_room_id" required placeholder="e.g. meeting-001"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="cr_room_title">Room Title</label>
+                            <input type="text" id="cr_room_title" required placeholder="e.g. Team Standup"/>
+                        </div>
+                        <div class="form-group full">
+                            <label for="cr_welcome_msg">Welcome Message</label>
+                            <textarea id="cr_welcome_msg" placeholder="Welcome to the meeting!">Welcome to plugNmeet!</textarea>
+                        </div>
+                        <div class="form-group">
+                            <label for="cr_max_participants">Max Participants (0 = unlimited)</label>
+                            <input type="number" id="cr_max_participants" value="0" min="0"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="cr_empty_timeout">Empty Timeout (seconds)</label>
+                            <input type="number" id="cr_empty_timeout" value="7200" min="60"/>
+                        </div>
+                        <div class="form-group full">
+                            <label>Room Features</label>
+                            <div class="checkbox-group">
+                                <label class="checkbox-item"><input type="checkbox" id="ft_webcams" checked/> Webcams</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_screen_share" checked/> Screen Share</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_recording" checked/> Recording</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_chat" checked/> Chat</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_file_upload" checked/> File Upload</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_whiteboard" checked/> Whiteboard</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_notepad" checked/> Shared Notepad</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_waiting_room"/> Waiting Room</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_breakout" checked/> Breakout Rooms</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_polls" checked/> Polls</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_raise_hand" checked/> Raise Hand</label>
+                                <label class="checkbox-item"><input type="checkbox" id="ft_mute_on_start"/> Mute on Start</label>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-primary">Create Room</button>
+                        <button type="reset" class="btn btn-outline">Reset</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Join Tab -->
+    <div id="tab-join" class="tab-content section-hidden">
+        <div class="card">
+            <div class="card-header">
+                <h2>Quick Join</h2>
+            </div>
+            <div class="card-body">
+                <form id="joinRoomForm" onsubmit="handleQuickJoin(event)">
+                    <div class="form-grid">
+                        <div class="form-group">
+                            <label for="qj_room_id">Room ID</label>
+                            <input type="text" id="qj_room_id" required placeholder="e.g. meeting-001"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="qj_name">Display Name</label>
+                            <input type="text" id="qj_name" required placeholder="Your name"/>
+                        </div>
+                        <div class="form-group">
+                            <label for="qj_user_id">User ID</label>
+                            <input type="text" id="qj_user_id" required/>
+                        </div>
+                        <div class="form-group">
+                            <label for="qj_user_type">User Type</label>
+                            <select id="qj_user_type">
+                                <option value="admin">Admin</option>
+                                <option value="participant">Participant</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="btn-group">
+                        <button type="submit" class="btn btn-success">Join Room</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Join Link Modal -->
+<div class="modal-overlay" id="joinLinkModal">
+    <div class="modal">
+        <div class="modal-header">
+            <span>Join Link Generated</span>
+            <button class="close" onclick="closeModal('joinLinkModal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label>Share this link to join the room:</label>
+                <div class="join-link">
+                    <input type="text" id="joinLinkInput" readonly/>
+                    <button class="btn btn-outline btn-sm" onclick="copyJoinLink()">Copy</button>
+                </div>
+            </div>
+            <div style="margin-top: 12px;">
+                <button class="btn btn-primary btn-sm" onclick="openJoinLink()">Open in New Tab</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline btn-sm" onclick="closeModal('joinLinkModal')">Close</button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+    // Admin API proxy URL (keeps API secret server-side)
+    const adminApiUrl = window.location.protocol + '//' + window.location.hostname + ':3100';
+    const clientUrl = window.location.origin;
+
+    // Auto-fill user ID
+    document.getElementById('qj_user_id').value = 'user-' + Date.now();
+
+    // Tab switching
+    function switchTab(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('section-hidden'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('section-hidden');
+        event.target.classList.add('active');
+        if (tab === 'rooms') refreshRooms();
+    }
+
+    // Toast notifications
+    function showToast(msg, type = 'success') {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.className = 'toast toast-' + type + ' show';
+        setTimeout(() => t.classList.remove('show'), 3000);
+    }
+
+    // Modal
+    function closeModal(id) {
+        document.getElementById(id).classList.remove('show');
+    }
+
+    // API request via admin proxy (no secret exposed)
+    async function apiRequest(endpoint, body) {
+        const res = await fetch(adminApiUrl + '/admin-api/' + endpoint, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(body)
+        });
+        return await res.json();
+    }
+
+    // Refresh active rooms
+    async function refreshRooms() {
+        const tbody = document.getElementById('roomsTableBody');
+        tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>Loading...</h3></div></td></tr>';
+
+        try {
+            const res = await apiRequest('room/list', {});
+            if (!res.status || !res.rooms || res.rooms.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>No active rooms</h3><p>Create a room to get started</p></div></td></tr>';
+                updateStats(0, 0, 0);
+                return;
+            }
+
+            let totalParticipants = 0;
+            let totalRecording = 0;
+            let html = '';
+
+            for (const entry of res.rooms) {
+                const room = entry.room_info || entry;
+                const meta = typeof room.metadata === 'string' ? JSON.parse(room.metadata) : room.metadata;
+                const title = meta?.room_title || room.room_title || room.room_id;
+                const participants = parseInt(room.joined_participants) || 0;
+                const isRecording = room.is_recording === 1 || room.is_recording === true;
+                const createdAt = room.creation_time ? new Date(parseInt(room.creation_time) * 1000).toLocaleTimeString() : '-';
+
+                totalParticipants += participants;
+                if (isRecording) totalRecording++;
+
+                html += `
+                <tr>
+                    <td><strong>${escHtml(title)}</strong></td>
+                    <td><code style="font-size:12px;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${escHtml(room.room_id)}</code></td>
+                    <td>${participants}</td>
+                    <td>
+                        <span class="badge badge-active">Active</span>
+                        ${isRecording ? '<span class="badge badge-recording" style="margin-left:4px;">REC</span>' : ''}
+                    </td>
+                    <td>${createdAt}</td>
+                    <td>
+                        <div style="display:flex;gap:6px;flex-wrap:wrap;">
+                            <button class="btn btn-success btn-sm" onclick="generateJoinLink('${escAttr(room.room_id)}')">Join Link</button>
+                            <button class="btn btn-danger btn-sm" onclick="endRoom('${escAttr(room.room_id)}')">End</button>
+                        </div>
+                    </td>
+                </tr>`;
+            }
+
+            tbody.innerHTML = html;
+            updateStats(res.rooms.length, totalParticipants, totalRecording);
+        } catch (e) {
+            tbody.innerHTML = '<tr><td colspan="6"><div class="empty-state"><h3>Error loading rooms</h3><p>' + e.message + '</p></div></td></tr>';
+        }
+    }
+
+    function updateStats(rooms, participants, recording) {
+        document.getElementById('statActiveRooms').textContent = rooms;
+        document.getElementById('statTotalParticipants').textContent = participants;
+        document.getElementById('statRecording').textContent = recording;
+    }
+
+    // Create room
+    async function handleCreateRoom(e) {
+        e.preventDefault();
+        const body = {
+            room_id: document.getElementById('cr_room_id').value,
+            max_participants: parseInt(document.getElementById('cr_max_participants').value) || 0,
+            empty_timeout: parseInt(document.getElementById('cr_empty_timeout').value) || 7200,
+            metadata: {
+                room_title: document.getElementById('cr_room_title').value,
+                welcome_message: document.getElementById('cr_welcome_msg').value,
+                room_features: {
+                    allow_webcams: document.getElementById('ft_webcams').checked,
+                    allow_screen_share: document.getElementById('ft_screen_share').checked,
+                    mute_on_start: document.getElementById('ft_mute_on_start').checked,
+                    allow_rtmp: true,
+                    allow_view_other_webcams: true,
+                    allow_view_other_users_list: true,
+                    allow_raise_hand: document.getElementById('ft_raise_hand').checked,
+                    recording_features: {
+                        is_allow: document.getElementById('ft_recording').checked,
+                        is_allow_cloud: true,
+                        is_allow_local: true,
+                    },
+                    chat_features: {
+                        is_allow: document.getElementById('ft_chat').checked,
+                        is_allow_file_upload: document.getElementById('ft_file_upload').checked,
+                        max_file_size: 50,
+                        allowed_file_types: ['jpg', 'png', 'zip', 'pdf'],
+                    },
+                    shared_note_pad_features: {
+                        is_allow: document.getElementById('ft_notepad').checked,
+                    },
+                    whiteboard_features: {
+                        is_allow: document.getElementById('ft_whiteboard').checked,
+                    },
+                    external_media_player_features: { is_allow: true },
+                    waiting_room_features: {
+                        is_active: document.getElementById('ft_waiting_room').checked,
+                    },
+                    breakout_room_features: {
+                        is_allow: document.getElementById('ft_breakout').checked,
+                        allowed_number_rooms: 6,
+                    },
+                    display_external_link_features: { is_allow: true },
+                    polls_features: {
+                        is_allow: document.getElementById('ft_polls').checked,
+                    },
+                },
+            },
+        };
+
+        try {
+            const res = await apiRequest('room/create', body);
+            if (res.status) {
+                showToast('Room "' + body.metadata.room_title + '" created successfully!');
+                switchTabDirect('rooms');
+                refreshRooms();
+            } else {
+                showToast(res.msg || 'Failed to create room', 'error');
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    // Generate join link
+    async function generateJoinLink(roomId, name, userId, isAdmin) {
+        name = name || 'Admin';
+        userId = userId || 'admin-' + Date.now();
+        isAdmin = isAdmin !== undefined ? isAdmin : true;
+
+        try {
+            const res = await apiRequest('room/joinToken', {
+                room_id: roomId,
+                user_info: { name: name, user_id: userId, is_admin: isAdmin },
+            });
+
+            if (res.status && res.token) {
+                const link = clientUrl + '/?access_token=' + res.token;
+                document.getElementById('joinLinkInput').value = link;
+                document.getElementById('joinLinkModal').classList.add('show');
+            } else {
+                showToast(res.msg || 'Failed to generate token', 'error');
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    // Quick join
+    async function handleQuickJoin(e) {
+        e.preventDefault();
+        const roomId = document.getElementById('qj_room_id').value;
+        const name = document.getElementById('qj_name').value;
+        const userId = document.getElementById('qj_user_id').value;
+        const isAdmin = document.getElementById('qj_user_type').value === 'admin';
+
+        // Check if room active, create if not
+        const checkRes = await apiRequest('room/isActive', { room_id: roomId });
+        if (!checkRes.is_active) {
+            const createRes = await apiRequest('room/create', {
+                room_id: roomId,
+                metadata: {
+                    room_title: roomId,
+                    welcome_message: 'Welcome!',
+                    room_features: {
+                        allow_webcams: true, allow_screen_share: true, mute_on_start: false,
+                        allow_rtmp: true, allow_view_other_webcams: true, allow_view_other_users_list: true,
+                        recording_features: { is_allow: true, is_allow_cloud: true, is_allow_local: true },
+                        chat_features: { is_allow: true, is_allow_file_upload: true },
+                        whiteboard_features: { is_allow: true },
+                        shared_note_pad_features: { is_allow: true },
+                        breakout_room_features: { is_allow: true, allowed_number_rooms: 6 },
+                        polls_features: { is_allow: true },
+                    },
+                },
+            });
+            if (!createRes.status) {
+                showToast(createRes.msg || 'Failed to create room', 'error');
+                return;
+            }
+        }
+
+        try {
+            const res = await apiRequest('room/joinToken', {
+                room_id: roomId,
+                user_info: { name: name, user_id: userId, is_admin: isAdmin },
+            });
+            if (res.status && res.token) {
+                window.open(clientUrl + '/?access_token=' + res.token, '_blank');
+            } else {
+                showToast(res.msg || 'Failed to join', 'error');
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    // End room
+    async function endRoom(roomId) {
+        if (!confirm('Are you sure you want to end room "' + roomId + '"?')) return;
+        try {
+            const res = await apiRequest('room/end', { room_id: roomId });
+            if (res.status) {
+                showToast('Room ended successfully');
+                refreshRooms();
+            } else {
+                showToast(res.msg || 'Failed to end room', 'error');
+            }
+        } catch (e) {
+            showToast('Error: ' + e.message, 'error');
+        }
+    }
+
+    function copyJoinLink() {
+        const input = document.getElementById('joinLinkInput');
+        input.select();
+        navigator.clipboard.writeText(input.value);
+        showToast('Link copied to clipboard!');
+    }
+
+    function openJoinLink() {
+        window.open(document.getElementById('joinLinkInput').value, '_blank');
+    }
+
+    function switchTabDirect(tab) {
+        document.querySelectorAll('.tab-content').forEach(el => el.classList.add('section-hidden'));
+        document.querySelectorAll('.tab').forEach(el => el.classList.remove('active'));
+        document.getElementById('tab-' + tab).classList.remove('section-hidden');
+        document.querySelectorAll('.tab').forEach(el => {
+            if (el.textContent.toLowerCase().includes(tab === 'rooms' ? 'active' : tab)) el.classList.add('active');
+        });
+    }
+
+    function escHtml(str) {
+        const d = document.createElement('div');
+        d.textContent = str;
+        return d.innerHTML;
+    }
+
+    function escAttr(str) {
+        return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+    }
+
+    // Auto-refresh every 15 seconds
+    refreshRooms();
+    setInterval(refreshRooms, 15000);
+</script>
+</body>
+</html>

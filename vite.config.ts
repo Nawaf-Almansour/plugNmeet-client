@@ -48,6 +48,16 @@ export default defineConfig({
     },
   },
   plugins: [
+    {
+      name: 'html-rewrite',
+      configureServer(server) {
+        server.middlewares.use((req, _res, next) => {
+          if (req.url === '/admin') req.url = '/admin.html';
+          if (req.url === '/login') req.url = '/login.html';
+          next();
+        });
+      },
+    },
     react(),
     tailwindcss(),
     viteStaticCopy(getStaticFilesToCopy()),
@@ -148,6 +158,10 @@ function getStaticFilesToCopy(): ViteStaticCopyOptions {
       },
       {
         src: 'login.html',
+        dest: './',
+      },
+      {
+        src: 'admin.html',
         dest: './',
       },
     ],
